@@ -34,30 +34,4 @@ jobs:
           echo $IMAGE_TAG
           cd Terraform
           terraform init
-          terraform destroy -target aws_ecs_service.demo-ecs-service -auto-approve -input=false
-          cd ../
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-      - name: Terraform Init
-        run: |
-          cd Terraform
-          terraform init
-      - name: Terraform Validate
-        id: validate
-        run: |
-          cd Terraform          
-          terraform validate -no-color
-      - name: Terraform Plan
-        id: plan
-        run: |
-          cd Terraform
-          terraform plan -no-color -input=false
-        continue-on-error: true
-      - name: Terraform Apply
-        run: |
-          cd Terraform
-          terraform apply -auto-approve -input=false
+          terraform destroy -auto-approve -input=false
