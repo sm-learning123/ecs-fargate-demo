@@ -5,7 +5,6 @@ provider "aws" {
 
 # Terraform settings
 terraform {
-
   required_providers {
     aws = {
       source  = "hashicorp/aws"
