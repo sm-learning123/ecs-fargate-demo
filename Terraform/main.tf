@@ -1,6 +1,6 @@
 # Provider configuration
 provider "aws" {
-  region  = var.ecs-demo["region"] 
+  region = var.ecs-demo["region"]
 }
 
 # Terraform settings
@@ -8,24 +8,20 @@ terraform {
 
   required_providers {
     aws = {
-      source = "hashicorp/aws"
-      version = "~> 4.33.0"
+      source  = "hashicorp/aws"
+      version = "~> 4.59.0"
     }
   }
 }
 
 terraform {
- backend "s3" {
-   bucket = "tfstate-backup-9"
-   key = "terraform.tfstate"
-   region = "ap-south-1"
-   encrypt = true
- }
+  backend "s3" {
+    bucket  = "tfstate-backup-9"
+    key     = "terraform.tfstate"
+    region  = var.ecs-demo["region"]
+    encrypt = true
+  }
 }
-
-#-------------------------------------------------------------------------#
-
-
 
 # VPC config
 resource "aws_default_vpc" "default" {
@@ -36,7 +32,7 @@ resource "aws_default_vpc" "default" {
 
 data "aws_subnets" "demo-subnet" {
   filter {
-    name = "vpc-id"
+    name   = "vpc-id"
     values = [aws_default_vpc.default.id]
   }
 }
@@ -69,8 +65,6 @@ resource "aws_iam_role_policy_attachment" "ecs-task-execution-role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-#---------------------------------------------------------------------------------------------
-
 # security group
 resource "aws_security_group" "demo-sg" {
   name        = "demo security group"
@@ -78,15 +72,15 @@ resource "aws_security_group" "demo-sg" {
   vpc_id      = aws_default_vpc.default.id
 
   ingress {
-    protocol        = "tcp"
-    from_port       = 80
-    to_port         = 80
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
     cidr_blocks = ["0.0.0.0/0"]
   }
-   ingress {
-    protocol        = "tcp"
-    from_port       = 3000
-    to_port         = 3000
+  ingress {
+    protocol    = "tcp"
+    from_port   = 3000
+    to_port     = 3000
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -113,9 +107,9 @@ resource "aws_ecs_task_definition" "demo-ecs-task-definition" {
   execution_role_arn       = aws_iam_role.ecs-task-execution-role.arn
   task_role_arn            = aws_iam_role.ecs-task-execution-role.arn
   container_definitions = jsonencode([{
-    name        = "demoapp"
-    image       = "${data.aws_ecr_repository.demoapp.repository_url}:latest"
-    essential   = true
+    name      = "demoapp"
+    image     = "${data.aws_ecr_repository.demoapp.repository_url}:latest"
+    essential = true
     portMappings = [{
       protocol      = "tcp"
       containerPort = 3000
@@ -136,7 +130,7 @@ resource "aws_ecs_service" "demo-ecs-service" {
     subnets          = data.aws_subnets.demo-subnet.ids
     assign_public_ip = true
   }
-    load_balancer {
+  load_balancer {
     target_group_arn = aws_lb_target_group.demo-lb.arn
     container_name   = "demoapp"
     container_port   = 3000
@@ -152,17 +146,17 @@ data "aws_ecr_repository" "demoapp" {
 
 
 resource "aws_lb" "default" {
-  name            = "demo-lb"
-  subnets         = data.aws_subnets.demo-subnet.ids
-  security_groups = [aws_security_group.demo-sg.id]
-  internal = false
-  ip_address_type = "ipv4"
+  name               = "demo-lb"
+  subnets            = data.aws_subnets.demo-subnet.ids
+  security_groups    = [aws_security_group.demo-sg.id]
+  internal           = false
+  ip_address_type    = "ipv4"
   load_balancer_type = "application"
-    tags = {
+  tags = {
     Environment = "demo-lb"
   }
 }
-  
+
 resource "aws_lb_target_group" "demo-lb" {
   name        = "demo-lb"
   port        = 80
@@ -173,13 +167,13 @@ resource "aws_lb_target_group" "demo-lb" {
     enabled = true
     type    = "lb_cookie"
   }
-   health_check {
-    path = "/"
-    healthy_threshold = 6
+  health_check {
+    path                = "/"
+    healthy_threshold   = 6
     unhealthy_threshold = 2
-    timeout = 2
-    interval = 5
-    matcher = "200,302"  # has to be HTTP 200 or fails
+    timeout             = 2
+    interval            = 5
+    matcher             = "200,302"
   }
 }
 
