@@ -17,7 +17,7 @@ terraform {
   backend "s3" {
     bucket  = "tfstate-backup-9"
     key     = "terraform.tfstate"
-    region  = var.ecs-demo["region"]
+    region  = "ap-south-1"
     encrypt = true
   }
 }
